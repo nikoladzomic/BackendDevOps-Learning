@@ -1,0 +1,87 @@
+package com.example.learning.security.jwt;
+
+import com.example.learning.exception.JwtAuthenticationException;
+import com.example.learning.security.JwtUtil;
+import com.example.learning.security.UserDetailsServiceImpl;
+import java.io.IOException;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+
+@Component
+@RequiredArgsConstructor
+@Slf4j
+public class JWTAuthenticationFilter extends OncePerRequestFilter {
+
+    private static final Logger logger = LoggerFactory.getLogger(JWTAuthenticationFilter.class);
+    private final JwtUtil jwtUtil;
+    private final UserDetailsServiceImpl userDetailsService;
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain)
+            throws ServletException, IOException {
+
+    try {
+
+        final String authHeader = request.getHeader("Authorization");
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        String token = authHeader.substring(7);
+        String email = jwtUtil.extractEmail(token);
+
+        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+
+            UserDetails userDetails =
+                    userDetailsService.loadUserByUsername(email);
+
+            if (!jwtUtil.isTokenValid(token, userDetails)) {
+                throw new JwtAuthenticationException("Invalid JWT token");
+            }
+
+            else {
+
+                UsernamePasswordAuthenticationToken auth =
+                        new UsernamePasswordAuthenticationToken(
+                                userDetails,
+                                null,
+                                userDetails.getAuthorities()
+                        );
+                auth.setDetails(
+                        new WebAuthenticationDetailsSource().buildDetails(request));
+
+                SecurityContextHolder.getContext().setAuthentication(auth);
+
+            }
+
+            logger.debug("JWT validated successfully for user: {}", userDetails.getUsername());
+
+        }
+
+        filterChain.doFilter(request, response);
+
+    } catch (JwtAuthenticationException ex) {
+        logger.warn("JWT authentication failed: {}", ex.getMessage());
+        throw ex; // ide u GlobalExceptionHandler
+    }
+}
+}
+
+

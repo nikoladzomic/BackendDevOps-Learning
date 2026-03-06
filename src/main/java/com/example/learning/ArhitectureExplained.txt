@@ -1,0 +1,210 @@
+1️⃣ MENTALNA MAPA SISTEMA
+
+Zapamti ovo kao nepregovarački redosled:
+
+HTTP REQUEST
+↓
+Spring Security Filter Chain
+↓
+JwtAuthenticationFilter (ako ima Bearer)
+↓
+SecurityContextHolder
+↓
+Authorization rules (SecurityConfig)
+↓
+Controller
+↓
+Service
+↓
+Repository
+↓
+Database
+↑
+Response (JSON)
+
+
+👉 Controller NIKAD ne vidi JWT direktno
+👉 Service ne zna da JWT postoji
+👉 Repository ne zna ni za usera ni za request
+
+Ako ovo razumeš – sve ostalo je detalj.
+
+2️⃣ LIFECYCLE 1: REGISTER (PUBLIC endpoint)
+Endpoint
+POST /api/auth/register
+
+Šta se dešava KORAK PO KORAK
+
+1️⃣ Request ulazi u aplikaciju
+
+NEMA Authorization headera
+
+To je OK
+
+2️⃣ JwtAuthenticationFilter
+
+Authorization header = null
+→ filterChain.doFilter()
+
+
+✔ Filter se SKIPA
+✔ SecurityContext ostaje prazan
+
+3️⃣ SecurityConfig
+
+.requestMatchers("/api/auth/**").permitAll()
+
+
+✔ Request JE DOZVOLJEN
+✔ Ne traži autentikaciju
+
+4️⃣ AuthController
+
+authService.register(...)
+
+
+5️⃣ AuthService
+
+validira da user ne postoji
+
+enkoduje password
+
+setuje role
+
+snima usera
+
+6️⃣ Response
+
+200 OK
+
+
+🚨 JWT SE OVDE NE KORISTI
+I to je ispravno.
+
+3️⃣ LIFECYCLE 2: LOGIN (PUBLIC → dobija JWT)
+Endpoint
+POST /api/auth/login
+
+Tok
+
+1️⃣ Request ulazi
+2️⃣ JwtFilter → SKIP (nema Bearer)
+3️⃣ SecurityConfig → permitAll
+4️⃣ Controller → AuthService.login
+
+5️⃣ AuthenticationManager
+
+authenticate(email, password)
+
+
+➡ koristi:
+
+UserDetailsServiceImpl
+
+PasswordEncoder
+
+6️⃣ Ako je OK:
+
+AuthService generiše JWT
+
+vraća AuthResponse { token }
+
+Response
+{
+  "token": "eyJhbGciOiJIUzI1NiJ9..."
+}
+
+
+🔥 OVO JE JEDINI TRENUTAK kada se JWT KREIRA
+
+4️⃣ LIFECYCLE 3: AUTHENTICATED REQUEST (npr /me)
+Endpoint
+GET /api/auth/me
+Authorization: Bearer <JWT>
+
+
+Sad ide najvažniji deo.
+
+STEP-BY-STEP (ovo moraš znati napamet)
+1️⃣ Request ulazi
+
+Headers:
+
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
+
+2️⃣ JwtAuthenticationFilter (KLJUČNA TAČKA)
+
+Filter radi:
+
+extract token
+extract email
+loadUserByUsername(email)
+validate token
+
+
+Ako je sve OK:
+
+SecurityContextHolder.getContext().setAuthentication(auth)
+
+
+📌 OVDE user POSTAJE "ulogovan"
+
+Ne u controlleru.
+Ne u service-u.
+OVDE.
+
+3️⃣ SecurityConfig – AUTHORIZATION
+
+Sad Spring pita:
+
+“Da li ovaj request SME da ide dalje?”
+
+Ako endpoint traži .authenticated():
+✔ ima authentication u contextu → PROLAZI
+
+Ako nema:
+❌ 401 Unauthorized
+
+4️⃣ Controller (/me)
+
+U controlleru:
+
+NEMA JWT-a
+
+NEMA tokena
+
+NEMA email-a iz headera
+
+Sve ide preko:
+
+SecurityContextHolder.getContext().getAuthentication()
+
+
+ili još bolje u service-u.
+
+Ako ti /me vraća:
+
+"User not found"
+
+
+❌ to znači DA JWT FILTER NIJE SETOVAO CONTEXT
+(ne controller problem)
+
+5️⃣ ZAŠTO TI /me I forgot-password PADAJU
+
+Sad brutalna istina.
+
+❌ Problem 1: /me
+
+Ako dobijaš:
+
+400 User not found
+
+
+To znači jedno od ova 3:
+
+1️⃣ JWT nije validan
+2️⃣ Email iz tokena ≠ email u bazi
+3️⃣ UserDetailsService traži po emailu, a JWT ima username (ili obrnuto)
+
+👉 90% šanse da je #3

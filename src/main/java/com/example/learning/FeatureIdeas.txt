@@ -1,0 +1,35 @@
+
+
+Possible features to implement:
+
+AUTH/SECURITY
+-Refresh token rotation ✔
+-Revocation of refresh token ✔
+-Logout all sessions for the same user (Do additional test with /me through Postman)
+-Add /me endpoint so you can test if logout-all jwt is actually revoked (Test if it actually works)
+-Review all active sessions by the user
+-Account lock after multiple failed login attempts
+-Rate limiting for login
+-Password reset flow
+-Email verification
+
+ADMIN FUNCTIONALITY
+-View all users
+-View all roles
+-Ban / unban user
+-Promote user to admin
+-View all active user sessions
+-Revoke all active user sessions
+
+AUDIT LOGS
+-Create audit log table and track all changes made to the database
+
+PAGINATION
+SORTING
+FILTERING
+
+Maybe Oauth2
+
+Docker
+Swagger
+Unit and Integration tests(Boring af but necessary)
