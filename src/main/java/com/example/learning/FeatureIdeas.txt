@@ -5,11 +5,11 @@ Possible features to implement:
 AUTH/SECURITY
 -Refresh token rotation ✔
 -Revocation of refresh token ✔
--Logout all sessions for the same user (Do additional test with /me through Postman)
--Add /me endpoint so you can test if logout-all jwt is actually revoked (Test if it actually works)
--Review all active sessions by the user
--Account lock after multiple failed login attempts
--Rate limiting for login
+-Logout all sessions for the same user ✔
+-Add /me endpoint so you can test if logout-all jwt is actually revoked ✔
+-Review all active sessions by the user ✔
+-Account lock after multiple failed login attempts ✔
+-Rate limiting for login ✔
 -Password reset flow
 -Email verification
 

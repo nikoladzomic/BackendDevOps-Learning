@@ -5,6 +5,7 @@ import com.example.learning.dto.auth.*;
 import com.example.learning.entity.RefreshToken;
 import com.example.learning.entity.Role;
 import com.example.learning.entity.User;
+import com.example.learning.exception.AccountLockedException;
 import com.example.learning.exception.ConflictException;
 import com.example.learning.exception.ResourceNotFoundException;
 import com.example.learning.exception.TokenException;
@@ -12,13 +13,11 @@ import com.example.learning.repository.RefreshTokenRepository;
 import com.example.learning.repository.RoleRepository;
 import com.example.learning.repository.UserRepository;
 import com.example.learning.security.JwtUtil;
-import com.example.learning.service.AuthService;
-import com.example.learning.service.CookieService;
-import com.example.learning.service.CurrentUserProvider;
-import com.example.learning.service.RefreshTokenService;
+import com.example.learning.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -41,10 +40,10 @@ public class AuthServiceImpl implements AuthService {
     private final CookieService cookieService;
     private final RefreshTokenRepository refreshTokenRepository;
     private final CurrentUserProvider currentUserProvider;
+    private final LoginAttemptService loginAttemptService;
 
     @Override
     public void register(RegisterRequest request) {
-
 
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new ConflictException("User with this email already exists");
@@ -66,19 +65,29 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthResponse login(LoginRequest request) {
 
-        log.info("User login attempt: {}", request.getEmail());
 
-        Authentication authentication =
+        if(loginAttemptService.isLocked(request.getEmail())) {
+            throw new AccountLockedException("Account is locked due to multiple failed login attempts, try again later");
+        }
+
+        try{
+            Authentication authentication =
                 authenticationManager.authenticate(
                         new UsernamePasswordAuthenticationToken(
                                 request.getEmail(),
                                 request.getPassword()
                         )
                 );
+        } catch (BadCredentialsException e) {
+            loginAttemptService.loginFailed(request.getEmail());
+            throw e;
+        }
 
         User user = userRepository
                 .findByEmail(request.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        loginAttemptService.loginSucceeded(request.getEmail());
 
         String accessToken = jwtUtil.generateToken(user);
 

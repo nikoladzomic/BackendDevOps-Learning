@@ -158,4 +158,16 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
+
+    @ExceptionHandler(AccountLockedException.class)
+    public ResponseEntity<ErrorResponse> handleAccountLocked(AccountLockedException ex) {
+        log.warn("Account locked: {}", ex.getMessage());
+        ErrorResponse response = new ErrorResponse(
+                423,
+                "ACCOUNT_LOCKED",
+                ex.getMessage(),
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.valueOf(423)).body(response);
+    }
 }
