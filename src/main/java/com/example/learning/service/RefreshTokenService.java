@@ -1,8 +1,11 @@
 package com.example.learning.service;
 
 
+import com.example.learning.dto.SessionDTO;
 import com.example.learning.entity.RefreshToken;
 import com.example.learning.entity.User;
+
+import java.util.List;
 
 public interface RefreshTokenService {
 
@@ -15,4 +18,8 @@ public interface RefreshTokenService {
     RefreshToken createRefreshToken(User user);
 
     void revokeByUser(User user);
+
+    void revokeSession(Long sessionId);
+
+    List<SessionDTO> getActiveSessionsForCurrentUser();
 }
