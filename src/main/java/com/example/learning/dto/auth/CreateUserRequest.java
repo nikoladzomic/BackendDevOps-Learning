@@ -4,9 +4,10 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import java.util.Set;
 
 @Data
-public class RegisterRequest {
+public class CreateUserRequest {
 
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
@@ -21,4 +22,7 @@ public class RegisterRequest {
 
     @NotBlank(message = "Last name is required")
     private String lastName;
+
+    @NotBlank(message = "At least one role is required")
+    private Set<String> roles;
 }

@@ -19,6 +19,10 @@ target/
 *.iml
 *.ipr
 
+# Lokalne konfiguracije sa tajnama
+src/main/resources/application-dev.properties
+.env
+
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/

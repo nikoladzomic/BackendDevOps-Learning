@@ -10,8 +10,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -25,7 +23,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Slf4j
 public class JWTAuthenticationFilter extends OncePerRequestFilter {
 
-    private static final Logger logger = LoggerFactory.getLogger(JWTAuthenticationFilter.class);
     private final JwtUtil jwtUtil;
     private final UserDetailsServiceImpl userDetailsService;
 
@@ -71,14 +68,14 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
 
             }
 
-            logger.debug("JWT validated successfully for user: {}", userDetails.getUsername());
+            log.debug("JWT validated successfully for user: {}", userDetails.getUsername());
 
         }
 
         filterChain.doFilter(request, response);
 
     } catch (JwtAuthenticationException ex) {
-        logger.warn("JWT authentication failed: {}", ex.getMessage());
+        log.warn("JWT authentication failed: {}", ex.getMessage());
         throw ex; // ide u GlobalExceptionHandler
     }
 }

@@ -2,6 +2,7 @@ package com.example.learning.service.impl;
 
 import com.example.learning.entity.RefreshToken;
 import com.example.learning.entity.User;
+import com.example.learning.exception.TokenException;
 import com.example.learning.repository.RefreshTokenRepository;
 import com.example.learning.service.RefreshTokenService;
 import jakarta.transaction.Transactional;
@@ -21,13 +22,13 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     @Override
     public RefreshToken getByToken(String token) {
         return refreshTokenRepository.findByToken(token)
-                .orElseThrow(() -> new RuntimeException("Refresh token not found"));
+                .orElseThrow(() -> new TokenException("Refresh token not found"));
     }
 
     @Override
     public void verifyExpiration(RefreshToken token) {
         if (token.getExpiryDate().isBefore(Instant.now()) || token.isRevoked()) {
-            throw new RuntimeException("Refresh token expired or revoked");
+            throw new TokenException("Refresh token is expired or revoked");
         }
     }
 

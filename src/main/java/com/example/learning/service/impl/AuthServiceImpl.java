@@ -5,6 +5,9 @@ import com.example.learning.dto.auth.*;
 import com.example.learning.entity.RefreshToken;
 import com.example.learning.entity.Role;
 import com.example.learning.entity.User;
+import com.example.learning.exception.ConflictException;
+import com.example.learning.exception.ResourceNotFoundException;
+import com.example.learning.exception.TokenException;
 import com.example.learning.repository.RefreshTokenRepository;
 import com.example.learning.repository.RoleRepository;
 import com.example.learning.repository.UserRepository;
@@ -15,11 +18,6 @@ import com.example.learning.service.CurrentUserProvider;
 import com.example.learning.service.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -34,8 +32,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class AuthServiceImpl implements AuthService {
 
-
-    private static final Logger logger = LoggerFactory.getLogger(AuthServiceImpl.class);
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
@@ -51,7 +47,7 @@ public class AuthServiceImpl implements AuthService {
 
 
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RuntimeException("User already exists");
+            throw new ConflictException("User with this email already exists");
         }
 
         User user = new User();
@@ -63,14 +59,14 @@ public class AuthServiceImpl implements AuthService {
 
         Role role = roleRepository.findByName("ROLE_USER");
         user.getRoles().add(role);
-        logger.info("User registered successfully: {}", request.getEmail());
+        log.info("User registered successfully: {}", request.getEmail());
         userRepository.save(user);
     }
 
     @Override
     public AuthResponse login(LoginRequest request) {
 
-        logger.info("User login attempt: {}", request.getEmail());
+        log.info("User login attempt: {}", request.getEmail());
 
         Authentication authentication =
                 authenticationManager.authenticate(
@@ -82,14 +78,14 @@ public class AuthServiceImpl implements AuthService {
 
         User user = userRepository
                 .findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         String accessToken = jwtUtil.generateToken(user);
 
         RefreshToken refreshToken =
                 refreshTokenService.createRefreshToken(user);
 
-        logger.info("Login successful for email: {}", request.getEmail());
+        log.info("Login successful for email: {}", request.getEmail());
 
         return new AuthResponse(accessToken, refreshToken.getToken());
     }
@@ -112,7 +108,17 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public void logout(String refreshToken) {
+
+        RefreshToken token = refreshTokenRepository.findByToken(refreshToken)
+                .orElseThrow(() -> new RuntimeException("Refresh token not found"));
+
+        Long currentUserId = currentUserProvider.getCurrentUserId();
+
+        if (!token.getUser().getId().equals(currentUserId)) {
+            throw new TokenException("Token does not belong to current user");
+        }
         refreshTokenRepository.revokeByToken(refreshToken);
     }
 
@@ -126,27 +132,6 @@ public class AuthServiceImpl implements AuthService {
                 refreshTokenRepository.revokeAllByUserId(userId);
 
         log.info("Revoked {} tokens for user {}", revoked, userId);
-    }
-
-    @Transactional(readOnly = true)
-    public UserDTO getCurrentUser() {
-        Long userId = currentUserProvider.getCurrentUserId();
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        UserDTO dto = new UserDTO();
-        dto.setId(user.getId());
-        dto.setEmail(user.getEmail());
-        dto.setFirstName(user.getFirstName());
-        dto.setLastName(user.getLastName());
-        dto.setRoles(user.getRoles().stream()
-                .map(role -> role.getName())
-                .collect(Collectors.toSet()));
-        dto.setEnabled(user.getEnabled());
-        dto.setCreatedAt(user.getCreatedAt());
-        dto.setUpdatedAt(user.getUpdatedAt());
-        return dto;
     }
 
 }

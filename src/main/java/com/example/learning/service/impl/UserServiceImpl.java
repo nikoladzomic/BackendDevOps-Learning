@@ -1,8 +1,10 @@
 package com.example.learning.service.impl;
 
+import com.example.learning.dto.auth.CreateUserRequest;
 import com.example.learning.dto.UserDTO;
 import com.example.learning.entity.Role;
 import com.example.learning.entity.User;
+import com.example.learning.exception.ResourceNotFoundException;
 import com.example.learning.repository.UserRepository;
 import com.example.learning.repository.RoleRepository;
 import com.example.learning.service.CurrentUserProvider;
@@ -26,7 +28,7 @@ public class UserServiceImpl implements UserService {
     private final CurrentUserProvider currentUserProvider;
 
     @Override
-    public UserDTO create(UserDTO dto) {
+    public UserDTO create(CreateUserRequest dto) {
         User user = new User();
         user.setEmail(dto.getEmail());
         user.setFirstName(dto.getFirstName());
@@ -46,7 +48,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDTO get(Long id) {
-        return mapToDTO(userRepository.findById(id).orElseThrow());
+        return mapToDTO(userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id)));
     }
 
     @Override
@@ -59,7 +62,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDTO update(Long id, UserDTO dto) {
-        User user = userRepository.findById(id).orElseThrow();
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
         user.setEmail(dto.getEmail());
         user.setFirstName(dto.getFirstName());
         user.setLastName(dto.getLastName());
@@ -74,11 +78,8 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     public UserDTO getCurrentUser() {
         Long userId = currentUserProvider.getCurrentUserId();
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        return mapToDTO(user);
+        return mapToDTO(userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found")));
     }
 
     private UserDTO mapToDTO(User user) {

@@ -5,6 +5,7 @@ import com.example.learning.dto.auth.*;
 import com.example.learning.service.AuthService;
 import com.example.learning.service.CookieService;
 import com.example.learning.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -23,19 +24,18 @@ public class AuthController {
     private final AuthService authService;
     private final CookieService cookieService;
     private final UserService userService;
-    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
 
-        logger.debug("Register endpoint /api/auth/register called");
+        log.debug("Register endpoint /api/auth/register called");
 
         authService.register(request);
         return ResponseEntity.ok("User registered");
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
 
         AuthResponse response = authService.login(request);
 
