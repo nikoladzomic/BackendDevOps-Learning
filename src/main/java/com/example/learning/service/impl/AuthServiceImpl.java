@@ -24,6 +24,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,8 +42,10 @@ public class AuthServiceImpl implements AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final CurrentUserProvider currentUserProvider;
     private final LoginAttemptService loginAttemptService;
+    private final EmailVerificationService emailVerificationService;
 
     @Override
+    @Transactional
     public void register(RegisterRequest request) {
 
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
@@ -54,12 +57,17 @@ public class AuthServiceImpl implements AuthService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
-        user.setEnabled(true);
+        user.setEnabled(false); // Ne može da se uloguje dok ne verifikuje email
+        user.setCreatedAt(new Date());
 
         Role role = roleRepository.findByName("ROLE_USER");
         user.getRoles().add(role);
-        log.info("User registered successfully: {}", request.getEmail());
         userRepository.save(user);
+
+        // Pošalji verifikacioni email
+        emailVerificationService.sendVerificationEmail(user.getEmail());
+
+        log.info("User registered successfully: {}", request.getEmail());
     }
 
     @Override

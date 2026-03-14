@@ -2,9 +2,7 @@ package com.example.learning.controller;
 
 import com.example.learning.dto.UserDTO;
 import com.example.learning.dto.auth.*;
-import com.example.learning.service.AuthService;
-import com.example.learning.service.CookieService;
-import com.example.learning.service.UserService;
+import com.example.learning.service.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +22,7 @@ public class AuthController {
     private final AuthService authService;
     private final CookieService cookieService;
     private final UserService userService;
+    private final PasswordResetService passwordResetService;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
@@ -90,6 +89,40 @@ public class AuthController {
     @GetMapping("/me")
     public ResponseEntity<UserDTO> getCurrentUser() {
         return ResponseEntity.ok(userService.getCurrentUser());
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(
+            @Valid @RequestBody ForgotPasswordRequest request) {
+
+        passwordResetService.forgotPassword(request);
+        // Uvek vraćamo isti response — ne otkrivamo da li email postoji
+        return ResponseEntity.ok(
+                "If an account with that email exists, a reset link has been sent."
+        );
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(
+            @Valid @RequestBody ResetPasswordRequest request) {
+
+        passwordResetService.resetPassword(request);
+        return ResponseEntity.ok("Password reset successful");
+    }
+
+    private final EmailVerificationService emailVerificationService;
+
+    @GetMapping("/verify")
+    public ResponseEntity<String> verifyEmail(@RequestParam String token) {
+        emailVerificationService.verifyEmail(token);
+        return ResponseEntity.ok("Email verified successfully. You can now log in.");
+    }
+
+    @PostMapping("/resend-verification")
+    public ResponseEntity<String> resendVerification(
+            @Valid @RequestBody ForgotPasswordRequest request) {
+        emailVerificationService.sendVerificationEmail(request.getEmail());
+        return ResponseEntity.ok("Verification email sent.");
     }
 
 }
