@@ -10,16 +10,17 @@ AUTH/SECURITY
 -Review all active sessions by the user ✔
 -Account lock after multiple failed login attempts ✔
 -Rate limiting for login ✔
--Password reset flow
--Email verification
+-Password reset flow ✔
+-Email verification ✔
 
 ADMIN FUNCTIONALITY
--View all users
--View all roles
--Ban / unban user
--Promote user to admin
--View all active user sessions
--Revoke all active user sessions
+-View all users ✔
+-View all roles ✔
+-Ban / unban user ✔
+-Promote user to admin ✔
+-View all active user sessions ✔
+-Revoke all active user sessions ✔
+-Demote admin ✔
 
 AUDIT LOGS
 -Create audit log table and track all changes made to the database

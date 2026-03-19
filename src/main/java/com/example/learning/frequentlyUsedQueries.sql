@@ -1,6 +1,9 @@
 select * from roles;
 select * from users;
 select * from user_roles;
+select * from refresh_tokens;
+
+SHOW CREATE TABLE refresh_tokens;
 
 SET SQL_SAFE_UPDATES = 0;
 
@@ -12,7 +15,9 @@ SET SQL_SAFE_UPDATES = 1;
 
 use ucenje;
 
-DELETE FROM users WHERE email = 'admin@admin.com';
+DELETE FROM refresh_tokens;
+
+DELETE FROM users WHERE email = 'nikola@test.com';
 DELETE FROM user_roles;
 DELETE FROM roles;
 

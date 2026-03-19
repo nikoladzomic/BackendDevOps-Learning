@@ -22,4 +22,8 @@ public interface RefreshTokenService {
     void revokeSession(Long sessionId);
 
     List<SessionDTO> getActiveSessionsForCurrentUser();
+
+    List<SessionDTO> getActiveSessionsByUserId(Long userId);
+
+    void revokeAllSessionsByUserId(Long userId);
 }

@@ -1,5 +1,6 @@
 package com.example.learning.controller;
 
+import com.example.learning.config.ApiConstants;
 import com.example.learning.dto.UserDTO;
 import com.example.learning.dto.auth.*;
 import com.example.learning.service.*;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping(ApiConstants.API_V1 + "/auth")
 @RequiredArgsConstructor
 public class AuthController {
 

@@ -15,4 +15,7 @@ public interface  UserService {
     UserDTO update(Long id, UserDTO userDTO);
     void delete(Long id);
     UserDTO getCurrentUser();
+    void setBanStatus(Long id, boolean banned);
+    void promoteToAdmin(Long id);
+    void demoteFromAdmin(Long id);
 }

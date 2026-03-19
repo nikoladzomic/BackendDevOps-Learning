@@ -1,5 +1,6 @@
 package com.example.learning.controller;
 
+import com.example.learning.config.ApiConstants;
 import com.example.learning.dto.SessionDTO;
 import com.example.learning.service.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +12,7 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/sessions")
+@RequestMapping(ApiConstants.API_V1 + "/sessions")
 @RequiredArgsConstructor
 public class SessionController {
 

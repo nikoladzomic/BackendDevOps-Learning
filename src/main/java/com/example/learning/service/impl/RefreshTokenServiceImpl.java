@@ -6,8 +6,10 @@ import com.example.learning.entity.User;
 import com.example.learning.exception.ResourceNotFoundException;
 import com.example.learning.exception.TokenException;
 import com.example.learning.repository.RefreshTokenRepository;
+import com.example.learning.repository.UserRepository;
 import com.example.learning.service.CurrentUserProvider;
 import com.example.learning.service.RefreshTokenService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,12 +20,14 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RefreshTokenServiceImpl implements RefreshTokenService {
 
     private final RefreshTokenRepository refreshTokenRepository;
     private final CurrentUserProvider currentUserProvider;
+    private final UserRepository userRepository;
 
     @Override
     public RefreshToken getByToken(String token) {
@@ -102,6 +106,29 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         dto.setExpiryDate(token.getExpiryDate());
         dto.setRevoked(token.isRevoked());
         return dto;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<SessionDTO> getActiveSessionsByUserId(Long userId) {
+        userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
+        return refreshTokenRepository
+                .findActiveSessionsByUserId(userId, Instant.now())
+                .stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public void revokeAllSessionsByUserId(Long userId) {
+        userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
+        int revoked = refreshTokenRepository.revokeAllByUserId(userId);
+        log.info("Admin revoked {} sessions for user {}", revoked, userId);
     }
 }
 

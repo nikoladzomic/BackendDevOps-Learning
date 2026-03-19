@@ -1,5 +1,6 @@
 package com.example.learning.security;
 
+import com.example.learning.config.ApiConstants;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.Refill;
@@ -45,7 +46,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         // Primeni rate limiting samo na login endpoint
-        if (!request.getRequestURI().equals("/api/auth/login")) {
+        if (!request.getRequestURI().equals(ApiConstants.API_V1 + "/auth/login")) {
             filterChain.doFilter(request, response);
             return;
         }

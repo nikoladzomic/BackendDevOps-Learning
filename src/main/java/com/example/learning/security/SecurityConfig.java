@@ -1,5 +1,6 @@
 package com.example.learning.security;
 
+import com.example.learning.config.ApiConstants;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,15 +65,15 @@ public class SecurityConfig {
                 .authenticationProvider(authenticationProvider())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/auth/login",
-                                "/api/auth/register",
-                                "/api/auth/refresh",
-                                "/api/auth/forgot-password",
-                                "/api/auth/reset-password",
-                                "/api/auth/verify",
-                                "/api/auth/resend-verification"
+                                ApiConstants.API_V1 + "/auth/login",
+                                ApiConstants.API_V1 + "/auth/register",
+                                ApiConstants.API_V1 + "/auth/refresh",
+                                ApiConstants.API_V1 + "/auth/forgot-password",
+                                ApiConstants.API_V1 + "/auth/reset-password",
+                                ApiConstants.API_V1 + "/auth/verify",
+                                ApiConstants.API_V1 + "/auth/resend-verification"
                         ).permitAll()
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers(ApiConstants.API_V1 + "/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
