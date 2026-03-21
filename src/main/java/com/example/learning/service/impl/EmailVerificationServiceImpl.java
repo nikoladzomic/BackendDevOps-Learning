@@ -1,5 +1,6 @@
 package com.example.learning.service.impl;
 
+import com.example.learning.audit.Audited;
 import com.example.learning.entity.User;
 import com.example.learning.entity.VerificationToken;
 import com.example.learning.exception.ConflictException;
@@ -60,6 +61,7 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
 
     @Override
     @Transactional
+    @Audited(action = "EMAIL_VERIFIED", resourceType = "USER")
     public void verifyEmail(String token) {
 
         VerificationToken verificationToken = tokenRepository

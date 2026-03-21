@@ -1,5 +1,4 @@
 
-
 Possible features to implement:
 
 AUTH/SECURITY
@@ -23,12 +22,12 @@ ADMIN FUNCTIONALITY
 -Demote admin ✔
 
 AUDIT LOGS
--Create audit log table and track all changes made to the database
+-Create audit log table and track all changes made to the database ✔
 
 PAGINATION
 SORTING
 FILTERING
-Version control(add api/v1 and api/v2)
+Version control(add api/v1 and api/v2) ✔
 
 Maybe Oauth2
 

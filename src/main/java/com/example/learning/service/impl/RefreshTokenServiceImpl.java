@@ -1,5 +1,6 @@
 package com.example.learning.service.impl;
 
+import com.example.learning.audit.Audited;
 import com.example.learning.dto.SessionDTO;
 import com.example.learning.entity.RefreshToken;
 import com.example.learning.entity.User;
@@ -123,6 +124,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
     @Override
     @Transactional
+    @Audited(action = "REVOKE_ALL_SESSIONS", resourceType = "SESSION")
     public void revokeAllSessionsByUserId(Long userId) {
         userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));

@@ -1,5 +1,6 @@
 package com.example.learning.service.impl;
 
+import com.example.learning.audit.Audited;
 import com.example.learning.dto.UserDTO;
 import com.example.learning.dto.auth.*;
 import com.example.learning.entity.RefreshToken;

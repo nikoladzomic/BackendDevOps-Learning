@@ -1,5 +1,6 @@
 package com.example.learning.service.impl;
 
+import com.example.learning.audit.Audited;
 import com.example.learning.dto.auth.ForgotPasswordRequest;
 import com.example.learning.dto.auth.ResetPasswordRequest;
 import com.example.learning.entity.PasswordResetToken;
@@ -68,6 +69,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
 
     @Override
     @Transactional
+    @Audited(action = "PASSWORD_RESET", resourceType = "USER")
     public void resetPassword(ResetPasswordRequest request) {
 
         PasswordResetToken resetToken = tokenRepository

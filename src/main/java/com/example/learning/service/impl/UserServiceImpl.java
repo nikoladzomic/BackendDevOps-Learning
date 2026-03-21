@@ -1,5 +1,6 @@
 package com.example.learning.service.impl;
 
+import com.example.learning.audit.Audited;
 import com.example.learning.dto.auth.CreateUserRequest;
 import com.example.learning.dto.UserDTO;
 import com.example.learning.entity.Role;
@@ -105,6 +106,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @Audited(action = "BAN_USER", resourceType = "USER")
     public void setBanStatus(Long id, boolean banned) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
@@ -115,6 +117,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @Audited(action = "PROMOTE_USER", resourceType = "USER")
     public void promoteToAdmin(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
@@ -135,6 +138,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @Audited(action = "DEMOTE_USER", resourceType = "USER")
     public void demoteFromAdmin(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));

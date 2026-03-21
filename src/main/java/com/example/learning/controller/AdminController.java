@@ -3,6 +3,8 @@ package com.example.learning.controller;
 import com.example.learning.config.ApiConstants;
 import com.example.learning.dto.SessionDTO;
 import com.example.learning.dto.UserDTO;
+import com.example.learning.entity.AuditLog;
+import com.example.learning.service.AuditLogService;
 import com.example.learning.service.RefreshTokenService;
 import com.example.learning.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,7 @@ public class AdminController {
 
     private final UserService userService;
     private final RefreshTokenService refreshTokenService;
+    private final AuditLogService auditLogService;
 
     @GetMapping("/users")
     public ResponseEntity<List<UserDTO>> getAllUsers() {
@@ -72,6 +75,16 @@ public class AdminController {
     public ResponseEntity<Void> demoteFromAdmin(@PathVariable Long id) {
         userService.demoteFromAdmin(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/audit-logs")
+    public ResponseEntity<List<AuditLog>> getAuditLogs() {
+        return ResponseEntity.ok(auditLogService.getAllLogs());
+    }
+
+    @GetMapping("/audit-logs/user/{email}")
+    public ResponseEntity<List<AuditLog>> getAuditLogsByUser(@PathVariable String email) {
+        return ResponseEntity.ok(auditLogService.getLogsByUser(email));
     }
 }
  
