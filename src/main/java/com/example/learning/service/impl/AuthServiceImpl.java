@@ -6,10 +6,7 @@ import com.example.learning.dto.auth.*;
 import com.example.learning.entity.RefreshToken;
 import com.example.learning.entity.Role;
 import com.example.learning.entity.User;
-import com.example.learning.exception.AccountLockedException;
-import com.example.learning.exception.ConflictException;
-import com.example.learning.exception.ResourceNotFoundException;
-import com.example.learning.exception.TokenException;
+import com.example.learning.exception.*;
 import com.example.learning.repository.RefreshTokenRepository;
 import com.example.learning.repository.RoleRepository;
 import com.example.learning.repository.UserRepository;
@@ -60,6 +57,7 @@ public class AuthServiceImpl implements AuthService {
         user.setLastName(request.getLastName());
         user.setEnabled(false); // Ne može da se uloguje dok ne verifikuje email
         user.setCreatedAt(new Date());
+        user.setEmailVerified(false);
 
         Role role = roleRepository.findByName("ROLE_USER");
         user.getRoles().add(role);
@@ -74,34 +72,40 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthResponse login(LoginRequest request) {
 
-
-        if(loginAttemptService.isLocked(request.getEmail())) {
-            throw new AccountLockedException("Account is locked due to multiple failed login attempts, try again later");
+        // Prvo proveri lock
+        if (loginAttemptService.isLocked(request.getEmail())) {
+            throw new AccountLockedException(
+                    "Account is locked due to multiple failed attempts. Try again in 15 minutes."
+            );
         }
 
-        try{
-            Authentication authentication =
-                authenticationManager.authenticate(
-                        new UsernamePasswordAuthenticationToken(
-                                request.getEmail(),
-                                request.getPassword()
-                        )
-                );
-        } catch (BadCredentialsException e) {
-            loginAttemptService.loginFailed(request.getEmail());
-            throw e;
-        }
-
-        User user = userRepository
-                .findByEmail(request.getEmail())
+        // Nadji usera pre autentikacije da proverimo status
+        User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        // Proveri da li je verifikovan
+        if (!user.getEnabled() && !isBanned(user)) {
+            throw new AccountNotVerifiedException(
+                    "Please verify your email before logging in. Check your inbox."
+            );
+        }
+
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getPassword()
+                    )
+            );
+        } catch (BadCredentialsException ex) {
+            loginAttemptService.loginFailed(request.getEmail());
+            throw ex;
+        }
 
         loginAttemptService.loginSucceeded(request.getEmail());
 
         String accessToken = jwtUtil.generateToken(user);
-
-        RefreshToken refreshToken =
-                refreshTokenService.createRefreshToken(user);
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
 
         log.info("Login successful for email: {}", request.getEmail());
 
@@ -152,4 +156,7 @@ public class AuthServiceImpl implements AuthService {
         log.info("Revoked {} tokens for user {}", revoked, userId);
     }
 
+    private boolean isBanned(User user) {
+        return user.isEmailVerified() && !user.getEnabled();
+    }
 }

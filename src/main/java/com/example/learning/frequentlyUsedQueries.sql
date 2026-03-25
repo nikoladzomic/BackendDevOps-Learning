@@ -2,16 +2,18 @@ select * from roles;
 select * from users;
 select * from user_roles;
 select * from refresh_tokens;
+select * from audit_log;
 
 SHOW CREATE TABLE refresh_tokens;
 
 SET SQL_SAFE_UPDATES = 0;
 
+SET SQL_SAFE_UPDATES = 1;
+
+UPDATE users SET enabled = 1, email_verified = 1;
 UPDATE roles
 SET name = CONCAT('ROLE_', name)
 WHERE name NOT LIKE 'ROLE_%';
-
-SET SQL_SAFE_UPDATES = 1;
 
 use ucenje;
 
@@ -28,3 +30,4 @@ SELECT u.email, r.name
 FROM users u
 JOIN user_roles ur ON u.id = ur.user_id
 JOIN roles r ON r.id = ur.role_id;
+

@@ -71,7 +71,10 @@ public class SecurityConfig {
                                 ApiConstants.API_V1 + "/auth/forgot-password",
                                 ApiConstants.API_V1 + "/auth/reset-password",
                                 ApiConstants.API_V1 + "/auth/verify",
-                                ApiConstants.API_V1 + "/auth/resend-verification"
+                                ApiConstants.API_V1 + "/auth/resend-verification",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui.html"
                         ).permitAll()
                         .requestMatchers(ApiConstants.API_V1 + "/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()

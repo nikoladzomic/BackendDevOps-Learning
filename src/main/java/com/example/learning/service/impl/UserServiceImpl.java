@@ -1,6 +1,8 @@
 package com.example.learning.service.impl;
 
 import com.example.learning.audit.Audited;
+import com.example.learning.dto.PagedResponse;
+import com.example.learning.dto.UserFilterRequest;
 import com.example.learning.dto.auth.CreateUserRequest;
 import com.example.learning.dto.UserDTO;
 import com.example.learning.entity.Role;
@@ -9,11 +11,17 @@ import com.example.learning.exception.ConflictException;
 import com.example.learning.exception.ResourceNotFoundException;
 import com.example.learning.repository.UserRepository;
 import com.example.learning.repository.RoleRepository;
+import com.example.learning.repository.UserSpecification;
 import com.example.learning.service.CurrentUserProvider;
 import com.example.learning.service.UserService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -161,5 +169,43 @@ public class UserServiceImpl implements UserService {
         user.getRoles().remove(adminRole);
         userRepository.save(user);
         log.info("User {} demoted from admin", id);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PagedResponse<UserDTO> getAllFiltered(UserFilterRequest filter) {
+
+        // Kreiraj Pageable objekat
+        Sort sort = Sort.by(
+                filter.getSortDirection().equalsIgnoreCase("asc")
+                        ? Sort.Direction.ASC
+                        : Sort.Direction.DESC,
+                filter.getSortBy()
+        );
+        Pageable pageable = PageRequest.of(filter.getPage(), filter.getSize(), sort);
+
+        // Kombinuj specifikacije
+        Specification<User> spec = Specification
+                .where(UserSpecification.hasEmail(filter.getEmail()))
+                .and(UserSpecification.hasFirstName(filter.getFirstName()))
+                .and(UserSpecification.isEnabled(filter.getEnabled()));
+
+        // Izvrši query
+        Page<User> page = userRepository.findAll(spec, pageable);
+
+        // Mapiraj u DTO
+        List<UserDTO> content = page.getContent()
+                .stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+
+        return new PagedResponse<>(
+                content,
+                page.getNumber(),
+                page.getSize(),
+                page.getTotalElements(),
+                page.getTotalPages(),
+                page.isLast()
+        );
     }
 }

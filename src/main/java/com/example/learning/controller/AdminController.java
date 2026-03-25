@@ -1,8 +1,10 @@
 package com.example.learning.controller;
 
 import com.example.learning.config.ApiConstants;
+import com.example.learning.dto.PagedResponse;
 import com.example.learning.dto.SessionDTO;
 import com.example.learning.dto.UserDTO;
+import com.example.learning.dto.UserFilterRequest;
 import com.example.learning.entity.AuditLog;
 import com.example.learning.service.AuditLogService;
 import com.example.learning.service.RefreshTokenService;
@@ -25,8 +27,25 @@ public class AdminController {
     private final AuditLogService auditLogService;
 
     @GetMapping("/users")
-    public ResponseEntity<List<UserDTO>> getAllUsers() {
-        return ResponseEntity.ok(userService.getAll());
+    public ResponseEntity<PagedResponse<UserDTO>> getAllUsers(
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String firstName,
+            @RequestParam(required = false) Boolean enabled,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDirection
+    ) {
+        UserFilterRequest filter = new UserFilterRequest();
+        filter.setEmail(email);
+        filter.setFirstName(firstName);
+        filter.setEnabled(enabled);
+        filter.setPage(page);
+        filter.setSize(size);
+        filter.setSortBy(sortBy);
+        filter.setSortDirection(sortDirection);
+
+        return ResponseEntity.ok(userService.getAllFiltered(filter));
     }
 
     @GetMapping("/users/{id}")
@@ -86,5 +105,7 @@ public class AdminController {
     public ResponseEntity<List<AuditLog>> getAuditLogsByUser(@PathVariable String email) {
         return ResponseEntity.ok(auditLogService.getLogsByUser(email));
     }
+
+
 }
  

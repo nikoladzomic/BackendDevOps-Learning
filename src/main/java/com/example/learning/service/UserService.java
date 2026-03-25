@@ -1,6 +1,8 @@
 package com.example.learning.service;
 
 
+import com.example.learning.dto.PagedResponse;
+import com.example.learning.dto.UserFilterRequest;
 import com.example.learning.dto.auth.CreateUserRequest;
 import com.example.learning.dto.UserDTO;
 
@@ -18,4 +20,5 @@ public interface  UserService {
     void setBanStatus(Long id, boolean banned);
     void promoteToAdmin(Long id);
     void demoteFromAdmin(Long id);
+    PagedResponse<UserDTO> getAllFiltered(UserFilterRequest filter);
 }

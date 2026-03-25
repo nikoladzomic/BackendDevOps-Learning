@@ -52,4 +52,7 @@ public class User {
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date updatedAt;
+
+    @Column(nullable = false)
+    private boolean emailVerified = false;
 }
