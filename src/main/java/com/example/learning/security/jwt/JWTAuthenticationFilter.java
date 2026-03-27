@@ -4,6 +4,8 @@ import com.example.learning.exception.JwtAuthenticationException;
 import com.example.learning.security.JwtUtil;
 import com.example.learning.security.UserDetailsServiceImpl;
 import java.io.IOException;
+
+import com.example.learning.service.TokenBlacklistService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,60 +27,61 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final UserDetailsServiceImpl userDetailsService;
+    private final TokenBlacklistService tokenBlacklistService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain)
             throws ServletException, IOException {
+        try {
+            final String authHeader = request.getHeader("Authorization");
 
-    try {
-
-        final String authHeader = request.getHeader("Authorization");
-
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        String token = authHeader.substring(7);
-        String email = jwtUtil.extractEmail(token);
-
-        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-
-            UserDetails userDetails =
-                    userDetailsService.loadUserByUsername(email);
-
-            if (!jwtUtil.isTokenValid(token, userDetails)) {
-                throw new JwtAuthenticationException("Invalid JWT token");
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                filterChain.doFilter(request, response);
+                return;
             }
 
-            else {
+            String token = authHeader.substring(7);
+
+            // Proveri blacklistu PRE validacije
+            if (tokenBlacklistService.isBlacklisted(token)) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("Token has been revoked");
+                return;
+            }
+
+            String email = jwtUtil.extractEmail(token);
+
+            if (email != null && SecurityContextHolder.getContext()
+                    .getAuthentication() == null) {
+
+                UserDetails userDetails =
+                        userDetailsService.loadUserByUsername(email);
+
+                if (!jwtUtil.isTokenValid(token, userDetails)) {
+                    throw new JwtAuthenticationException("Invalid JWT token");
+                }
 
                 UsernamePasswordAuthenticationToken auth =
                         new UsernamePasswordAuthenticationToken(
                                 userDetails,
-                                null,
+                                token, // ← čuvamo token kao credentials
                                 userDetails.getAuthorities()
                         );
                 auth.setDetails(
                         new WebAuthenticationDetailsSource().buildDetails(request));
 
                 SecurityContextHolder.getContext().setAuthentication(auth);
-
             }
 
-            log.debug("JWT validated successfully for user: {}", userDetails.getUsername());
+            filterChain.doFilter(request, response);
 
+        } catch (JwtAuthenticationException ex) {
+            log.warn("JWT authentication failed: {}", ex.getMessage());
+            throw ex;
         }
-
-        filterChain.doFilter(request, response);
-
-    } catch (JwtAuthenticationException ex) {
-        log.warn("JWT authentication failed: {}", ex.getMessage());
-        throw ex; // ide u GlobalExceptionHandler
     }
-}
 }
 
 

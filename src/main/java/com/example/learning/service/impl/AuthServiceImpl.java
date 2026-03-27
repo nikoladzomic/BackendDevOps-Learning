@@ -41,6 +41,7 @@ public class AuthServiceImpl implements AuthService {
     private final CurrentUserProvider currentUserProvider;
     private final LoginAttemptService loginAttemptService;
     private final EmailVerificationService emailVerificationService;
+    private final TokenBlacklistService tokenBlacklistService;
 
     @Override
     @Transactional
@@ -131,17 +132,27 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public void logout(String refreshToken) {
+    public void logout(String refreshToken, String accessToken) {
 
         RefreshToken token = refreshTokenRepository.findByToken(refreshToken)
-                .orElseThrow(() -> new RuntimeException("Refresh token not found"));
+                .orElseThrow(() -> new TokenException("Refresh token not found"));
 
         Long currentUserId = currentUserProvider.getCurrentUserId();
 
         if (!token.getUser().getId().equals(currentUserId)) {
             throw new TokenException("Token does not belong to current user");
         }
+
+        // Revokuj refresh token u bazi
         refreshTokenRepository.revokeByToken(refreshToken);
+
+        // Blacklistuj access token u Redisu
+        if (accessToken != null) {
+            long remainingTtl = jwtUtil.getRemainingExpiration(accessToken);
+            if (remainingTtl > 0) {
+                tokenBlacklistService.blacklistToken(accessToken, remainingTtl);
+            }
+        }
     }
 
     @Transactional

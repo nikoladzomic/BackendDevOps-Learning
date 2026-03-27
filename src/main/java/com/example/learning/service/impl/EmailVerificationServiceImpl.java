@@ -1,11 +1,13 @@
 package com.example.learning.service.impl;
 
 import com.example.learning.audit.Audited;
+import com.example.learning.dto.EmailMessage;
 import com.example.learning.entity.User;
 import com.example.learning.entity.VerificationToken;
 import com.example.learning.exception.ConflictException;
 import com.example.learning.exception.ResourceNotFoundException;
 import com.example.learning.exception.TokenException;
+import com.example.learning.messaging.EmailProducer;
 import com.example.learning.repository.UserRepository;
 import com.example.learning.repository.VerificationTokenRepository;
 import com.example.learning.service.EmailService;
@@ -27,7 +29,7 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
 
     private final UserRepository userRepository;
     private final VerificationTokenRepository tokenRepository;
-    private final EmailService emailService;
+    private final EmailProducer emailProducer;
 
     @Value("${app.frontend.url}")
     private String frontendUrl;
@@ -54,7 +56,9 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
         tokenRepository.save(token);
 
         String verificationLink = frontendUrl + "/verify-email?token=" + token.getToken();
-        emailService.sendVerificationEmail(user.getEmail(), verificationLink);
+        emailProducer.sendEmailMessage(
+                new EmailMessage(user.getEmail(), "VERIFICATION", verificationLink)
+        );
 
         log.info("Verification email sent to: {}", email);
     }

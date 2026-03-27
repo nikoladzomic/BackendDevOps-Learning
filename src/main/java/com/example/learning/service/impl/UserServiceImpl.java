@@ -188,7 +188,8 @@ public class UserServiceImpl implements UserService {
         Specification<User> spec = Specification
                 .where(UserSpecification.hasEmail(filter.getEmail()))
                 .and(UserSpecification.hasFirstName(filter.getFirstName()))
-                .and(UserSpecification.isEnabled(filter.getEnabled()));
+                .and(UserSpecification.isEnabled(filter.getEnabled()))
+                .and(UserSpecification.hasRole(filter.getRole()));
 
         // Izvrši query
         Page<User> page = userRepository.findAll(spec, pageable);

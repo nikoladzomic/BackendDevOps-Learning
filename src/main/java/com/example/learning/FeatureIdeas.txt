@@ -29,8 +29,19 @@ SORTING ✔
 FILTERING ✔
 Version control(add api/v1 and api/v2) ✔
 
-Maybe Oauth2
+Faza 5 — Redis
+- JWT blacklisting
+- Rate limiting migracija
+- Caching
 
-Docker
-Swagger
-Unit and Integration tests(Boring af but necessary)
+Faza 6 — Message Queue (RabbitMQ)
+- Async email notifikacije
+
+Faza 7 — Docker
+- Dockerfile
+- Docker Compose (app + MySQL + Redis + RabbitMQ)
+
+Faza 8 — CI/CD + Deploy
+- GitHub Actions
+- Nginx + SSL
+- Railway/Render

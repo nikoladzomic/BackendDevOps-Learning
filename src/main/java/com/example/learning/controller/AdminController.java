@@ -31,6 +31,7 @@ public class AdminController {
             @RequestParam(required = false) String email,
             @RequestParam(required = false) String firstName,
             @RequestParam(required = false) Boolean enabled,
+            @RequestParam(required = false) String role,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
@@ -40,6 +41,7 @@ public class AdminController {
         filter.setEmail(email);
         filter.setFirstName(firstName);
         filter.setEnabled(enabled);
+        filter.setRole(role);
         filter.setPage(page);
         filter.setSize(size);
         filter.setSortBy(sortBy);

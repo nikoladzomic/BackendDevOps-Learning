@@ -7,6 +7,7 @@ public class UserFilterRequest {
     private String email;
     private String firstName;
     private Boolean enabled;
+    private String role;
     private int page = 0;
     private int size = 10;
     private String sortBy = "createdAt";

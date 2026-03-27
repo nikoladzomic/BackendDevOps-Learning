@@ -61,14 +61,20 @@ public class AuthController {
                 .body(new AuthResponse(response.getAccessToken(), null));
     }
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@CookieValue(value = "refreshToken", required = false) String refreshToken) {
-        System.out.println("COOKIE refreshToken = [" + refreshToken + "]");
+    public ResponseEntity<Void> logout(
+            @CookieValue(value = "refreshToken", required = false) String refreshToken,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+
+        String accessToken = null;
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            accessToken = authHeader.substring(7);
+        }
 
         if (refreshToken != null) {
-            authService.logout(refreshToken);
+            authService.logout(refreshToken, accessToken);
         }
-        ResponseCookie deleteCookie = cookieService.deleteRefreshTokenCookie();
 
+        ResponseCookie deleteCookie = cookieService.deleteRefreshTokenCookie();
         return ResponseEntity.noContent()
                 .header(HttpHeaders.SET_COOKIE, deleteCookie.toString())
                 .build();

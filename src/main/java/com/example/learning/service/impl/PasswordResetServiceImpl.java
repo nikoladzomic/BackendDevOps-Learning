@@ -1,12 +1,14 @@
 package com.example.learning.service.impl;
 
 import com.example.learning.audit.Audited;
+import com.example.learning.dto.EmailMessage;
 import com.example.learning.dto.auth.ForgotPasswordRequest;
 import com.example.learning.dto.auth.ResetPasswordRequest;
 import com.example.learning.entity.PasswordResetToken;
 import com.example.learning.entity.User;
 import com.example.learning.exception.ResourceNotFoundException;
 import com.example.learning.exception.TokenException;
+import com.example.learning.messaging.EmailProducer;
 import com.example.learning.repository.PasswordResetTokenRepository;
 import com.example.learning.repository.UserRepository;
 import com.example.learning.service.EmailService;
@@ -29,7 +31,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
 
     private final UserRepository userRepository;
     private final PasswordResetTokenRepository tokenRepository;
-    private final EmailService emailService;
+    private final EmailProducer emailProducer;
     private final PasswordEncoder passwordEncoder;
 
     @Value("${app.frontend.url}")
@@ -61,7 +63,9 @@ public class PasswordResetServiceImpl implements PasswordResetService {
 
             // Šaljemo email
             String resetLink = frontendUrl + "/reset-password?token=" + resetToken.getToken();
-            emailService.sendPasswordResetEmail(user.getEmail(), resetLink);
+            emailProducer.sendEmailMessage(
+                    new EmailMessage(user.getEmail(), "PASSWORD_RESET", resetLink)
+            );
 
             log.info("Password reset token created for user: {}", user.getEmail());
         });
