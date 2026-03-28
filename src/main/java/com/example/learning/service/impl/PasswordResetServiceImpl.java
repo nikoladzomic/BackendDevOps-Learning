@@ -31,7 +31,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
 
     private final UserRepository userRepository;
     private final PasswordResetTokenRepository tokenRepository;
-    private final EmailProducer emailProducer;
+    private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
 
     @Value("${app.frontend.url}")
@@ -63,9 +63,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
 
             // Šaljemo email
             String resetLink = frontendUrl + "/reset-password?token=" + resetToken.getToken();
-            emailProducer.sendEmailMessage(
-                    new EmailMessage(user.getEmail(), "PASSWORD_RESET", resetLink)
-            );
+            emailService.sendPasswordResetEmail(user.getEmail(), resetLink);
 
             log.info("Password reset token created for user: {}", user.getEmail());
         });

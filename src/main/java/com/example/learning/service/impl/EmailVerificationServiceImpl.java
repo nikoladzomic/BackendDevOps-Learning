@@ -29,7 +29,7 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
 
     private final UserRepository userRepository;
     private final VerificationTokenRepository tokenRepository;
-    private final EmailProducer emailProducer;
+    private final EmailService emailService;
 
     @Value("${app.frontend.url}")
     private String frontendUrl;
@@ -56,9 +56,7 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
         tokenRepository.save(token);
 
         String verificationLink = frontendUrl + "/verify-email?token=" + token.getToken();
-        emailProducer.sendEmailMessage(
-                new EmailMessage(user.getEmail(), "VERIFICATION", verificationLink)
-        );
+        emailService.sendVerificationEmail(user.getEmail(), verificationLink);
 
         log.info("Verification email sent to: {}", email);
     }
