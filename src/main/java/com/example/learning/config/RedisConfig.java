@@ -31,8 +31,8 @@ public class RedisConfig {
 
     @Bean
     public RedisClient redisClient(
-            @Value("${spring.data.redis.host}") String host,
-            @Value("${spring.data.redis.port}") int port) {
+            @Value("${spring.data.redis.host:localhost}") String host,
+            @Value("${spring.data.redis.port:6379}") int port) {
         return RedisClient.create("redis://" + host + ":" + port);
     }
 }
