@@ -30,12 +30,12 @@ FILTERING ✔
 Version control(add api/v1 and api/v2) ✔
 
 Faza 5 — Redis
-- JWT blacklisting
-- Rate limiting migracija
-- Caching
+- JWT blacklisting ✔
+- Rate limiting migracija ✔
+- Caching ✔
 
 Faza 6 — Message Queue (RabbitMQ)
-- Async email notifikacije
+- Async email notifikacije ✔
 
 Faza 7 — Docker
 - Dockerfile

@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+        mysql:
+            image: mysql:8.0
+            container_name: learning-mysql
+            environment:
+                MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+                MYSQL_DATABASE: ucenje
+            ports:
+                - "3306:3306"
+            volumes:
+                - mysql-data:/var/lib/mysql
+            healthcheck:
+                test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+                interval: 10s
+                timeout: 5s
+                retries: 5
+
+        redis:
+            image: redis:latest
+            container_name: learning-redis
+            ports:
+                - "6379:6379"
+            volumes:
+                - redis-data:/data
+            healthcheck:
+                test: ["CMD", "redis-cli", "ping"]
+                interval: 10s
+                timeout: 5s
+                retries: 5
+
+        rabbitmq:
+            image: rabbitmq:management
+            container_name: learning-rabbitmq
+            ports:
+                - "5672:5672"
+                - "15672:15672"
+            volumes:
+                - rabbitmq-data:/var/lib/rabbitmq
+            healthcheck:
+                test: ["CMD", "rabbitmq-diagnostics", "ping"]
+                interval: 10s
+                timeout: 5s
+                retries: 5
+
+        app:
+            build: .
+            container_name: learning-app
+            ports:
+                - "8080:8080"
+            environment:
+                DB_URL: jdbc:mysql://mysql:3306/ucenje?createDatabaseIfNotExist=true
+                DB_USERNAME: root
+                DB_PASSWORD: ${DB_PASSWORD}
+                JWT_SECRET: ${JWT_SECRET}
+                JWT_EXPIRATION: 86400000
+                REDIS_HOST: redis
+                REDIS_PORT: 6379
+                RABBITMQ_HOST: rabbitmq
+                RABBITMQ_PORT: 5672
+                RABBITMQ_USERNAME: guest
+                RABBITMQ_PASSWORD: guest
+                COOKIE_SECURE: false
+            depends_on:
+                mysql:
+                    condition: service_healthy
+                redis:
+                    condition: service_healthy
+                rabbitmq:
+                    condition: service_healthy
+
+volumes:
+    mysql-data:
+    redis-data:
+    rabbitmq-data:

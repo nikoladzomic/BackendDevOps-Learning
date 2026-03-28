@@ -21,6 +21,7 @@ target/
 
 # Lokalne konfiguracije sa tajnama
 src/main/resources/application-dev.properties
+docker-compose.override.yml
 .env
 
 ### NetBeans ###
