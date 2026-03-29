@@ -27,14 +27,27 @@ import java.util.function.Supplier;
 @Component
 public class RateLimitingFilter extends OncePerRequestFilter {
 
-    private final ProxyManager<byte[]> proxyManager;
+    private final RedisClient redisClient;
+    private volatile ProxyManager<byte[]> proxyManager;
 
     public RateLimitingFilter(RedisClient redisClient) {
-        StatefulRedisConnection<byte[], byte[]> connection =
-                redisClient.connect(ByteArrayCodec.INSTANCE);
-        this.proxyManager = LettuceBasedProxyManager
-                .builderFor(connection)
-                .build();
+        this.redisClient = redisClient;
+        // NE konektujemo se ovde
+    }
+
+    private ProxyManager<byte[]> getProxyManager() {
+        if (proxyManager == null) {
+            synchronized (this) {
+                if (proxyManager == null) {
+                    StatefulRedisConnection<byte[], byte[]> connection =
+                            redisClient.connect(ByteArrayCodec.INSTANCE);
+                    this.proxyManager = LettuceBasedProxyManager
+                            .builderFor(connection)
+                            .build();
+                }
+            }
+        }
+        return proxyManager;
     }
 
     private BucketConfiguration createBucketConfiguration() {
@@ -62,7 +75,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
 
         Supplier<BucketConfiguration> configSupplier = this::createBucketConfiguration;
 
-        var bucket = proxyManager.builder().build(key, configSupplier);
+        var bucket = getProxyManager().builder().build(key, configSupplier);
 
         if (bucket.tryConsume(1)) {
             filterChain.doFilter(request, response);
