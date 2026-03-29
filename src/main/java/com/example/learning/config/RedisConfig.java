@@ -32,7 +32,17 @@ public class RedisConfig {
     @Bean
     public RedisClient redisClient(
             @Value("${spring.data.redis.host:localhost}") String host,
-            @Value("${spring.data.redis.port:6379}") int port) {
-        return RedisClient.create("redis://" + host + ":" + port);
+            @Value("${spring.data.redis.port:6379}") int port,
+            @Value("${spring.data.redis.password:}") String password) {
+
+        String redisUri;
+        if (password != null && !password.isEmpty()) {
+            // Upstash koristi SSL i password
+            redisUri = "rediss://default:" + password + "@" + host + ":" + port;
+        } else {
+            redisUri = "redis://" + host + ":" + port;
+        }
+
+        return RedisClient.create(redisUri);
     }
 }
