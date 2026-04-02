@@ -9,6 +9,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Audited {
     String action();
-
     String resourceType() default "";
+    int resourceIdArgIndex() default 0; // koji argument je ID, default 0
+    boolean useReturnValue() default false; // ili uzmi iz return vrednosti
 }

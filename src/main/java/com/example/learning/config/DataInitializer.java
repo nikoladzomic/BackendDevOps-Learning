@@ -5,6 +5,7 @@ import com.example.learning.entity.User;
 import com.example.learning.repository.RoleRepository;
 import com.example.learning.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -19,6 +20,15 @@ public class DataInitializer implements CommandLineRunner {
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+
+    @Value("${app.admin.email:admin@admin.com}")
+    private String adminEmail;
+
+    @Value("${app.admin.password:admin123}")
+    private String adminPassword;
+
+    @Value("${app.admin.firstName:Admin}")
+    private String adminFirstName;
 
     @Override
     @Transactional
@@ -35,18 +45,17 @@ public class DataInitializer implements CommandLineRunner {
             userRole = roleRepository.save(new Role("ROLE_USER"));
         }
 
-        if (userRepository.findByEmail("admin@admin.com").isEmpty()) {
+        if (userRepository.findByEmail(adminEmail).isEmpty()) {
 
             User admin = new User();
-            admin.setEmail("admin@admin.com");
-            admin.setPassword(passwordEncoder.encode("admin123"));
-            admin.setFirstName("Admin");
+            admin.setEmail(adminEmail);
+            admin.setPassword(passwordEncoder.encode(adminPassword));
+            admin.setFirstName(adminFirstName);
             admin.setLastName("Admin");
             admin.setCreatedAt(new Date());
             admin.setEnabled(true);
-
+            admin.setEmailVerified(true);
             admin.getRoles().add(adminRole);
-
             userRepository.save(admin);
         }
     }

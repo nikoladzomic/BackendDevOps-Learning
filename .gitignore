@@ -19,6 +19,8 @@ target/
 *.iml
 *.ipr
 
+echo "src/main/java/**/*.sql" >> .gitignore
+
 # Lokalne konfiguracije sa tajnama
 src/main/resources/application-dev.properties
 docker-compose.override.yml

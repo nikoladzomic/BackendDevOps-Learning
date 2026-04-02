@@ -72,7 +72,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(JwtAuthenticationException.class)
-    public ResponseEntity<ErrorResponse> handleJwtException(JWTAuthenticationFilter ex) {
+    public ResponseEntity<ErrorResponse> handleJwtException(JwtAuthenticationException ex) {
 
         ErrorResponse response = new ErrorResponse(
                 401,

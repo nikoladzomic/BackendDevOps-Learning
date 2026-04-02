@@ -28,7 +28,7 @@ public class AuditLogAspect {
         String performedBy = getCurrentUserEmail();
 
         // Koji je prvi argument — obicno je to ID resursa
-        String resourceId = extractResourceId(joinPoint.getArgs());
+        String resourceId = extractResourceId(joinPoint, audited);
 
         Object result;
         try {
@@ -62,10 +62,28 @@ public class AuditLogAspect {
         return "SYSTEM";
     }
 
-    private String extractResourceId(Object[] args) {
-        if (args != null && args.length > 0 && args[0] != null) {
-            return args[0].toString();
+    private String extractResourceId(ProceedingJoinPoint joinPoint, Audited audited) {
+        Object[] args = joinPoint.getArgs();
+
+        if (args == null || args.length == 0) return null;
+
+        int idx = audited.resourceIdArgIndex();
+        if (idx >= args.length || args[idx] == null) return null;
+
+        Object arg = args[idx];
+
+        // Ako je primitiv ili String — direktno koristi
+        if (arg instanceof Long || arg instanceof String || arg instanceof Integer) {
+            return arg.toString();
         }
-        return null;
+
+        // Ako je kompleksan objekat — pokušaj da izvučeš getId() ili getEmail()
+        try {
+            var method = arg.getClass().getMethod("getId");
+            Object id = method.invoke(arg);
+            return id != null ? id.toString() : null;
+        } catch (Exception ignored) {}
+
+        return arg.toString();
     }
 }

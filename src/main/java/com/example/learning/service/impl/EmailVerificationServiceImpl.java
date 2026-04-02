@@ -63,7 +63,7 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
 
     @Override
     @Transactional
-    @Audited(action = "EMAIL_VERIFIED", resourceType = "USER")
+    @Audited(action = "EMAIL_VERIFIED", resourceType = "USER", resourceIdArgIndex = -1)
     public void verifyEmail(String token) {
 
         VerificationToken verificationToken = tokenRepository

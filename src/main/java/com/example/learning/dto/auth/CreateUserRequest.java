@@ -2,6 +2,7 @@ package com.example.learning.dto.auth;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import java.util.Set;
@@ -23,6 +24,6 @@ public class CreateUserRequest {
     @NotBlank(message = "Last name is required")
     private String lastName;
 
-    @NotBlank(message = "At least one role is required")
+    @NotEmpty(message = "At least one role is required")
     private Set<String> roles;
 }
