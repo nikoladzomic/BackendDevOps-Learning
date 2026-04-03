@@ -29,4 +29,10 @@ public class RefreshToken {
 
     private Instant expiryDate;
     private boolean revoked;
+
+    @Column(name = "created_at")
+    private Instant createdAt;
+
+    @Column(name = "device_info", length = 500)
+    private String deviceInfo;
 }

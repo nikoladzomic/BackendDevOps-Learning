@@ -8,6 +8,4 @@ public class SessionDTO {
     private Long id;
     private Instant expiryDate;
     private boolean revoked;
-    private Instant createdAt;
-    private String deviceInfo;
 }

@@ -63,7 +63,6 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         token.setToken(UUID.randomUUID().toString());
         token.setExpiryDate(Instant.now().plus(7, ChronoUnit.DAYS));
         token.setRevoked(false);
-
         return refreshTokenRepository.save(token);
     }
 
@@ -103,7 +102,6 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     private SessionDTO mapToDTO(RefreshToken token) {
         SessionDTO dto = new SessionDTO();
         dto.setId(token.getId());
-        dto.setToken(token.getToken());
         dto.setExpiryDate(token.getExpiryDate());
         dto.setRevoked(token.isRevoked());
         return dto;
