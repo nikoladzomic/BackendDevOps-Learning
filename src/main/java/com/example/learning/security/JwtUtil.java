@@ -3,6 +3,8 @@ package com.example.learning.security;
 import com.example.learning.entity.Role;
 import com.example.learning.entity.User;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,12 +43,22 @@ public class JwtUtil {
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
-        final String email = extractEmail(token);
-        return (email.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        try {
+            final String email = extractEmail(token);
+            return email.equals(userDetails.getUsername()) && !isTokenExpired(token);
+        } catch (ExpiredJwtException e) {
+            return false; // istekao token nije validan, ali nije ni exception
+        } catch (JwtException e) {
+            return false; // malformiran, potpis ne valja, itd.
+        }
     }
 
     private boolean isTokenExpired(String token) {
-        return extractAllClaims(token).getExpiration().before(new Date());
+        try {
+            return extractAllClaims(token).getExpiration().before(new Date());
+        } catch (ExpiredJwtException e) {
+            return true; // ako baci exception — definitivno je expired
+        }
     }
 
     private Claims extractAllClaims(String token) {
@@ -58,8 +70,14 @@ public class JwtUtil {
     }
 
     public long getRemainingExpiration(String token) {
-        Date expiration = extractAllClaims(token).getExpiration();
-        return expiration.getTime() - System.currentTimeMillis();
+        try {
+            Date expiration = extractAllClaims(token).getExpiration();
+            return expiration.getTime() - System.currentTimeMillis();
+        } catch (ExpiredJwtException e) {
+            // Iz exceptiona možemo izvući expiration i dalje izračunati
+            Date expiration = e.getClaims().getExpiration();
+            return expiration.getTime() - System.currentTimeMillis(); // negativna vrednost
+        }
     }
 }
 

@@ -38,10 +38,44 @@ Faza 6 — Message Queue (RabbitMQ)
 - Async email notifikacije ✔
 
 Faza 7 — Docker
-- Dockerfile
-- Docker Compose (app + MySQL + Redis + RabbitMQ)
+- Dockerfile ✔
+- Docker Compose (app + MySQL + Redis + RabbitMQ) ✔
 
 Faza 8 — CI/CD + Deploy
-- GitHub Actions
-- Nginx + SSL
-- Railway/Render
+- GitHub Actions ✔
+- Railway/Render ✔
+
+Ideja za mini shop Tech Gear Shop — prodavnica tehničke opreme. Dovoljno prosto da se brzo implementuje,
+dovoljno realno da izgleda kao pravi projekat u portfoliju
+
+Postojeće (ostaje):         Novo:
+─────────────────────       ──────────────────────────
+User                   →    Product
+Role                   →    Category
+RefreshToken           →    Cart + CartItem
+AuditLog               →    Order + OrderItem
+                            ProductImage (opciono)
+
+PUBLIC:
+GET  /api/v1/products              — lista sa filterima i paginacijom
+GET  /api/v1/products/{id}         — detalji proizvoda
+GET  /api/v1/categories            — sve kategorije
+
+USER:
+GET  /api/v1/cart                  — moj košarica
+POST /api/v1/cart/items            — dodaj proizvod
+PUT  /api/v1/cart/items/{id}       — promeni količinu
+DELETE /api/v1/cart/items/{id}     — ukloni iz korpe
+POST /api/v1/orders                — napravi order iz korpe
+GET  /api/v1/orders                — moje porudžbine
+GET  /api/v1/orders/{id}           — detalji porudžbine
+
+ADMIN:
+POST   /api/v1/admin/products      — dodaj proizvod
+PUT    /api/v1/admin/products/{id} — izmeni proizvod
+DELETE /api/v1/admin/products/{id} — ukloni proizvod
+PATCH  /api/v1/admin/orders/{id}/status — promeni status
+GET    /api/v1/admin/orders        — sve porudžbine
+
+Order kreiran → EmailProducer.send("ORDER_CONFIRMATION") → Queue → EmailConsumer → Gmail
+Order shipped → EmailProducer.send("ORDER_SHIPPED")      → Queue → EmailConsumer → Gmail

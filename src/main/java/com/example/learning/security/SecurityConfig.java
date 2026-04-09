@@ -87,6 +87,8 @@ public class SecurityConfig {
                                 ApiConstants.API_V1 + "/auth/reset-password",
                                 ApiConstants.API_V1 + "/auth/verify",
                                 ApiConstants.API_V1 + "/auth/resend-verification",
+                                ApiConstants.API_V1 + "/products/**",
+                                ApiConstants.API_V1 + "/categories/**",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui.html"
