@@ -26,6 +26,10 @@ public class EmailConsumer {
                         emailService.sendVerificationEmail(message.getTo(), message.getLink());
                 case "PASSWORD_RESET" ->
                         emailService.sendPasswordResetEmail(message.getTo(), message.getLink());
+                case "ORDER_CONFIRMATION" ->
+                        emailService.sendOrderConfirmationEmail(message.getTo(), message.getLink());
+                case "ORDER_SHIPPED" ->
+                        emailService.sendOrderShippedEmail(message.getTo(), message.getLink());
                 default ->
                         log.warn("Unknown email type: {}", message.getType());
             }

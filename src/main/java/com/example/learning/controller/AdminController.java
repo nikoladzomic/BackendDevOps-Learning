@@ -1,12 +1,11 @@
 package com.example.learning.controller;
 
 import com.example.learning.config.ApiConstants;
-import com.example.learning.dto.PagedResponse;
-import com.example.learning.dto.SessionDTO;
-import com.example.learning.dto.UserDTO;
-import com.example.learning.dto.UserFilterRequest;
+import com.example.learning.dto.*;
 import com.example.learning.entity.AuditLog;
+import com.example.learning.entity.OrderStatus;
 import com.example.learning.service.AuditLogService;
+import com.example.learning.service.OrderService;
 import com.example.learning.service.RefreshTokenService;
 import com.example.learning.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +24,7 @@ public class AdminController {
     private final UserService userService;
     private final RefreshTokenService refreshTokenService;
     private final AuditLogService auditLogService;
+    private final OrderService orderService;
 
     @GetMapping("/users")
     public ResponseEntity<PagedResponse<UserDTO>> getAllUsers(
@@ -108,6 +108,19 @@ public class AdminController {
         return ResponseEntity.ok(auditLogService.getLogsByUser(email));
     }
 
+    @GetMapping("/orders")
+    public ResponseEntity<PagedResponse<OrderDTO>> getAllOrders(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(orderService.getAllOrders(page, size));
+    }
+
+    @PatchMapping("/orders/{id}/status")
+    public ResponseEntity<OrderDTO> updateOrderStatus(
+            @PathVariable Long id,
+            @RequestParam OrderStatus status) {
+        return ResponseEntity.ok(orderService.updateStatus(id, status));
+    }
 
 }
  
