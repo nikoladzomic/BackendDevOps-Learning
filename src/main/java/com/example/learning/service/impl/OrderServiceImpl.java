@@ -97,9 +97,16 @@ public class OrderServiceImpl implements OrderService {
         // Pošalji email kroz RabbitMQ — sada se zaista koristi!
         String user = cart.getUser().getEmail();
         String link = "/orders/" + savedOrder.getId();
-        emailProducer.sendEmailMessage(
-                new com.example.learning.dto.EmailMessage(user, "ORDER_CONFIRMATION", link)
-        );
+
+        try {
+            emailProducer.sendEmailMessage(
+                    new EmailMessage(user, "ORDER_CONFIRMATION", link)
+            );
+        } catch (Exception e) {
+            // Email fail ne sme da pukne order
+            log.warn("Failed to send order confirmation email for order {}: {}",
+                    savedOrder.getId(), e.getMessage());
+        }
 
         log.info("Order {} created for user {}", savedOrder.getId(), userId);
         return mapToDTO(savedOrder);
@@ -129,25 +136,30 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     @Audited(action = "UPDATE_ORDER_STATUS", resourceType = "ORDER")
     public OrderDTO updateStatus(Long orderId, OrderStatus newStatus) {
-        Order order = orderRepository.findById(orderId)
+        Order order = orderRepository.findByIdWithItemsAndUser(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Order not found with id: " + orderId));
 
         validateStatusTransition(order.getStatus(), newStatus);
         order.setStatus(newStatus);
+        Order savedOrder = orderRepository.save(order);
 
-        // Email notifikacija za shipped
         if (newStatus == OrderStatus.SHIPPED) {
-            emailProducer.sendEmailMessage(
-                    new com.example.learning.dto.EmailMessage(
-                            order.getUser().getEmail(),
-                            "ORDER_SHIPPED",
-                            "/orders/" + order.getId()
-                    )
-            );
+            try {
+                emailProducer.sendEmailMessage(
+                        new EmailMessage(
+                                order.getUser().getEmail(),
+                                "ORDER_SHIPPED",
+                                "/orders/" + order.getId()
+                        )
+                );
+            } catch (Exception e) {
+                log.warn("Failed to send shipped email for order {}: {}",
+                        orderId, e.getMessage());
+            }
         }
 
-        return mapToDTO(orderRepository.save(order));
+        return mapToDTO(savedOrder);
     }
 
     @Override
